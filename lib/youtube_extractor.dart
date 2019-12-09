@@ -29,7 +29,7 @@ class YouTubeExtractor {
 
   // Client used for http requests
   var _client = http.Client();
-  
+
   // Credits from https://github.com/sarbagyastha/youtube_player_flutter
   // Get video ID from URL
   static String convertUrlToId(String url, [bool trimWhitespaces = true]) {
@@ -50,7 +50,6 @@ class YouTubeExtractor {
 
     return null;
   }
-
 
   /// Gets a set of all available media stream infos for given video.
   Future<MediaStreamInfoSet> getMediaStreamsAsync(String videoId) async {
@@ -103,7 +102,13 @@ class YouTubeExtractor {
         var playerSource =
             await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
         signature = playerSource.decipher(signature);
-        url = url + '&sig=' + signature;
+        if (muxedStreamInfo[i].parseSp() != null) {
+          url = url +
+              '&ratebypass=yes&${muxedStreamInfo[i].parseSp()}=' +
+              signature;
+        } else {
+          url = url + '&signature=' + signature;
+        }
       }
 
       // Probe stream and get content length
@@ -150,7 +155,7 @@ class YouTubeExtractor {
                 '&ratebypass=yes&${adaptiveStreamInfo[i].parseSp()}=' +
                 signature;
           } else {
-            url = url + '&ratebypass=yes&sig=' + signature;
+            url = url + '&ratebypass=yes&signature=' + signature;
           }
         }
 
@@ -240,8 +245,8 @@ class YouTubeExtractor {
     // We are done with the client
     _client.close();
 
-    return MediaStreamInfoSet(
-        videoMetaInfo, muxedStreamInfos, audioStreamInfos, videoStreamInfos, hlsPlaylistUrl);
+    return MediaStreamInfoSet(videoMetaInfo, muxedStreamInfos, audioStreamInfos,
+        videoStreamInfos, hlsPlaylistUrl);
   }
 
   // -- PRIVATE METHODS -- //
