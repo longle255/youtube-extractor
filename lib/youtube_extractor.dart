@@ -6,6 +6,8 @@ import 'src/exceptions/video_unavailable_exception.dart';
 import 'src/internal/itag_helper.dart';
 import 'src/internal/parsers/player_source_parser.dart';
 import 'src/internal/parsers/video_info_parser.dart';
+import 'src/internal/parsers/video_meta_parser.dart';
+
 import 'src/internal/player_context.dart';
 import 'src/internal/player_source.dart';
 import 'src/models/media_streams/audio_stream_info.dart';
@@ -13,8 +15,12 @@ import 'src/models/media_streams/media_stream_info_set.dart';
 import 'src/models/media_streams/muxed_stream_info.dart';
 import 'src/models/media_streams/video_resolution.dart';
 import 'src/models/media_streams/video_stream_info.dart';
+import 'src/models/media_streams/video_meta_info.dart';
 import 'dart:convert';
 import 'dart:async';
+
+export 'src/models/media_streams/video_stream_info.dart';
+export 'src/models/media_streams/media_stream_info_set.dart';
 
 /// Dart port of YouTubeExplode
 class YouTubeExtractor {
@@ -63,6 +69,9 @@ class YouTubeExtractor {
     var parser =
         await _getVideoInfoParserAsync(videoId, "embedded", playerContext.sts);
 
+    var videoInfoRaw = parser.parseVideoInfo();
+    VideoMetaParser metaParser = VideoMetaParser.initialize(videoInfoRaw);
+    VideoMetaInfo videoMetaInfo = metaParser.toEntity();
     // Check if video requires purchase
     var previewVideoId = parser.parsePreviewVideoId();
     if (previewVideoId != null) {
@@ -94,7 +103,7 @@ class YouTubeExtractor {
         var playerSource =
             await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
         signature = playerSource.decipher(signature);
-        url = url + '&signature=' + signature;
+        url = url + '&sig=' + signature;
       }
 
       // Probe stream and get content length
@@ -141,7 +150,7 @@ class YouTubeExtractor {
                 '&ratebypass=yes&${adaptiveStreamInfo[i].parseSp()}=' +
                 signature;
           } else {
-            url = url + '&ratebypass=yes&signature=' + signature;
+            url = url + '&ratebypass=yes&sig=' + signature;
           }
         }
 
@@ -232,7 +241,7 @@ class YouTubeExtractor {
     _client.close();
 
     return MediaStreamInfoSet(
-        muxedStreamInfos, audioStreamInfos, videoStreamInfos, hlsPlaylistUrl);
+        videoMetaInfo, muxedStreamInfos, audioStreamInfos, videoStreamInfos, hlsPlaylistUrl);
   }
 
   // -- PRIVATE METHODS -- //

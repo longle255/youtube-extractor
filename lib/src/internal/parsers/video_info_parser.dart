@@ -24,7 +24,9 @@ class VideoInfoParser {
 
   String parseHlsPlaylistUrl() =>
       jsonDecode(_root['player_response'])['streamingData']['hlsManifestUrl'];
-
+  dynamic parseVideoInfo() {
+   return jsonDecode(_root["player_response"]);
+  }
   List<MuxedStreamInfoParser> getMuxedStreamInfo() {
     var streamInfosEncoded = _root['url_encoded_fmt_stream_map'];
 

@@ -1,11 +1,12 @@
 // This file shows a demostration on how to use the library.
-import 'package:youtube_extractor/youtube_extractor.dart';
+import '../lib/youtube_extractor.dart';
 
 var extractor = YouTubeExtractor();
 
 main() async {
   // Get and print the audio info for the passed video (music video)
   var musicVideoInfo = await extractor.getMediaStreamsAsync('52nfjRzIaj8');
+  print('Music Video Audio META: ${musicVideoInfo.meta}');
   print('Music Video Audio URL: ${musicVideoInfo.audio.first.url}');
 
   // Get and print the audio info for the passed video (music)

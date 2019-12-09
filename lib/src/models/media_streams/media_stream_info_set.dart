@@ -1,3 +1,4 @@
+import 'video_meta_info.dart';
 import 'audio_stream_info.dart';
 import 'muxed_stream_info.dart';
 import 'video_stream_info.dart';
@@ -16,5 +17,7 @@ class MediaStreamInfoSet {
   /// Raw HTTP Live Streaming (HLS) URL to the m3u8 playlist.
   String hlsLiveStreamUrl;
 
-  MediaStreamInfoSet(this.muxed, this.audio, this.video, this.hlsLiveStreamUrl);
+  VideoMetaInfo meta;
+
+  MediaStreamInfoSet(this.meta, this.muxed, this.audio, this.video, this.hlsLiveStreamUrl);
 }
