@@ -38,10 +38,8 @@ class YouTubeExtractor {
     if (trimWhitespaces) url = url.trim();
 
     for (var exp in [
-      RegExp(
-          r"^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?v=([_\-a-zA-Z0-9]{11}).*$"),
-      RegExp(
-          r"^https:\/\/(?:www\.|m\.)?youtube(?:-nocookie)?\.com\/embed\/([_\-a-zA-Z0-9]{11}).*$"),
+      RegExp(r"^https:\/\/(?:www\.|m\.)?youtube\.com\/watch\?v=([_\-a-zA-Z0-9]{11}).*$"),
+      RegExp(r"^https:\/\/(?:www\.|m\.)?youtube(?:-nocookie)?\.com\/embed\/([_\-a-zA-Z0-9]{11}).*$"),
       RegExp(r"^https:\/\/youtu\.be\/([_\-a-zA-Z0-9]{11}).*$")
     ]) {
       Match match = exp.firstMatch(url);
@@ -65,8 +63,7 @@ class YouTubeExtractor {
     var playerContext = await _getVideoPlayerContextAsync(videoId);
 
     // Get parser
-    var parser =
-        await _getVideoInfoParserAsync(videoId, "embedded", playerContext.sts);
+    var parser = await _getVideoInfoParserAsync(videoId, "embedded", playerContext.sts);
 
     var videoInfoRaw = parser.parseVideoInfo();
     VideoMetaParser metaParser = VideoMetaParser.initialize(videoInfoRaw);
@@ -99,13 +96,10 @@ class YouTubeExtractor {
       // Decipher signature if needed
       var signature = muxedStreamInfo[i].parseSignature();
       if (signature != null) {
-        var playerSource =
-            await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
+        var playerSource = await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
         signature = playerSource.decipher(signature);
         if (muxedStreamInfo[i].parseSp() != null) {
-          url = url +
-              '&ratebypass=yes&${muxedStreamInfo[i].parseSp()}=' +
-              signature;
+          url = url + '&${muxedStreamInfo[i].parseSp()}=' + signature;
         } else {
           url = url + '&signature=' + signature;
         }
@@ -144,16 +138,13 @@ class YouTubeExtractor {
         // Decipher signature if needed
         var signature = adaptiveStreamInfo[i].parseSignature();
         if (signature != null) {
-          var playerSource =
-              await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
+          var playerSource = await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
           signature = playerSource.decipher(signature);
 
           // parameter 'ratebypass' needs to be yes
           // if there is 'sp' parameter, must use 'sig' instead of 'signature'
           if (adaptiveStreamInfo[i].parseSp() != null) {
-            url = url +
-                '&ratebypass=yes&${adaptiveStreamInfo[i].parseSp()}=' +
-                signature;
+            url = url + '&ratebypass=yes&${adaptiveStreamInfo[i].parseSp()}=' + signature;
           } else {
             url = url + '&ratebypass=yes&signature=' + signature;
           }
@@ -174,8 +165,7 @@ class YouTubeExtractor {
           var framerate = adaptiveStreamInfo[i].parseFramerate();
 
           var resolution = VideoResolution(width, height);
-          var streamInfo = VideoStreamInfo(
-              itag, url, contentLength, bitrate, resolution, framerate);
+          var streamInfo = VideoStreamInfo(itag, url, contentLength, bitrate, resolution, framerate);
           videoStreamInfoMap[itag] = streamInfo;
         }
       }
@@ -185,13 +175,11 @@ class YouTubeExtractor {
     var dashManifestUrl = parser.parseDashManifestUrl();
     if (dashManifestUrl != null) {
       // Parse signature
-      var signature =
-          RegExp(r'/s/(.*?)(?:/|$)').firstMatch(dashManifestUrl)?.group(1);
+      var signature = RegExp(r'/s/(.*?)(?:/|$)').firstMatch(dashManifestUrl)?.group(1);
 
       // Decipher signature if needed
       if (signature != null && signature.isNotEmpty) {
-        var playerSource =
-            await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
+        var playerSource = await _getVideoPlayerSourceAsync(playerContext.sourceUrl);
         signature = playerSource.decipher(signature);
         dashManifestUrl = dashManifestUrl + '?signature=' + signature;
       }
@@ -227,8 +215,7 @@ class YouTubeExtractor {
           var framerate = dashStreamInfo[i].parseFramerate();
 
           var resolution = VideoResolution(width, height);
-          var streamInfo = VideoStreamInfo(
-              itag, url, contentLength, bitrate, resolution, framerate);
+          var streamInfo = VideoStreamInfo(itag, url, contentLength, bitrate, resolution, framerate);
           videoStreamInfoMap[itag] = streamInfo;
         }
       }
@@ -245,23 +232,18 @@ class YouTubeExtractor {
     // We are done with the client
     _client.close();
 
-    return MediaStreamInfoSet(videoMetaInfo, muxedStreamInfos, audioStreamInfos,
-        videoStreamInfos, hlsPlaylistUrl);
+    return MediaStreamInfoSet(videoMetaInfo, muxedStreamInfos, audioStreamInfos, videoStreamInfos, hlsPlaylistUrl);
   }
 
   // -- PRIVATE METHODS -- //
 
   Future<PlayerContext> _getVideoPlayerContextAsync(String videoId) async {
     // Build the required url and get the response
-    var url =
-        'https://www.youtube.com/embed/$videoId?disable_polymer=true&hl=en';
+    var url = 'https://www.youtube.com/embed/$videoId?disable_polymer=true&hl=en';
     var body = (await _client.get(url)).body;
 
     // Extract the config part
-    var config =
-        RegExp(r"yt\.setConfig\({'PLAYER_CONFIG':.+?\}\);", multiLine: true)
-            .firstMatch(body)
-            .group(0);
+    var config = RegExp(r"yt\.setConfig\({'PLAYER_CONFIG':.+?\}\);", multiLine: true).firstMatch(body).group(0);
 
     // Trip off the start and end to get a valid JSON string
     config = config.substring(30, config.length - 3);
@@ -279,16 +261,13 @@ class YouTubeExtractor {
     var sts = root["sts"].toString();
 
     // Check if successful
-    if (playerSourceUrl == null ||
-        playerSourceUrl.isEmpty ||
-        sts == null ||
-        sts.isEmpty) throw ParseException("Could not parse player context.");
+    if (playerSourceUrl == null || playerSourceUrl.isEmpty || sts == null || sts.isEmpty)
+      throw ParseException("Could not parse player context.");
 
     return PlayerContext(playerSourceUrl, sts);
   }
 
-  Future<VideoInfoParser> _getVideoInfoParserAsync(
-      String videoId, String el, String sts) async {
+  Future<VideoInfoParser> _getVideoInfoParserAsync(String videoId, String el, String sts) async {
     // This parameter does magic and a lot of videos don't work without it
     var eurl = Uri.encodeFull('https://youtube.googleapis.com/v/$videoId');
 
@@ -296,8 +275,7 @@ class YouTubeExtractor {
     // For some reasons, 'sts' parameter isn't required. but if value of 'sts' is null then, the request emit a Error.
     // previous variable
     // var url = "https://www.youtube.com/get_video_info?video_id=$videoId&el=$el&sts=$sts&eurl=$eurl&hl=en";
-    var url =
-        "https://www.youtube.com/get_video_info?video_id=$videoId&el=$el&eurl=$eurl&hl=en";
+    var url = "https://www.youtube.com/get_video_info?video_id=$videoId&el=$el&eurl=$eurl&hl=en";
     var body = (await _client.get(url)).body;
 
     // Parse the response
